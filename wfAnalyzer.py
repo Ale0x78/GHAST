@@ -93,7 +93,6 @@ def getOOD(wf):
 
     return out_date
 
-# %%
 def getRuns(wf):
     _runs = []
     for j in wf['jobs']:
@@ -104,7 +103,6 @@ def getRuns(wf):
     return _runs
                 
 
-# %%
 def getUses(repo):
     _uses = []
     _improper_use = []
@@ -115,7 +113,6 @@ def getUses(repo):
                 _uses.append(uses)
     return _uses
 
-# %%
 def getPerms(wf):
     _perms = {}
     _perms.update(wf=wf.get('permissions', None), jobs={})
@@ -123,7 +120,6 @@ def getPerms(wf):
         _perms['jobs'].update({j: wf['jobs'][j].get('permissions')})
     return _perms
 
-# %%
 def main(args):
     dictwf = pickle.load(open(f"{args.source}/savedDictWfs.dat", "rb"))
     commit_rex = r"[0-9a-f]{40}"
