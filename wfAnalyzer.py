@@ -5,12 +5,6 @@ from enum import Enum
 import requests
 import argparse
 
-parser = argparse.ArgumentParser(description='')
-parser.add_argument("--src", dest='source', type=str)
-parser.add_argument("--dest", dest="dest", type=str)
-
-args = parser.parse_args()
-
 class critical_gh_context(Enum):
     ACTOR = "github.actor"
     PULL_REQUEST_BODY = "github.event.pull_request.body"
@@ -93,7 +87,7 @@ def getPerms(wf):
     return _perms
 
 # %%
-def main():
+def main(args):
     dictwf = pickle.load(open(f"{args.source}/savedDictWfs.dat", "rb"))
     commit_rex = r"[0-9a-f]{40}"
 
@@ -145,7 +139,12 @@ def main():
         f.write(json.dumps(vulns))
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument("--src", dest='source', type=str)
+    parser.add_argument("--dest", dest="dest", type=str)
+
+    args = parser.parse_args()
+    main(args)
 
 
 
