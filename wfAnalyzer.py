@@ -4,6 +4,10 @@ import pickle
 from enum import Enum
 import requests
 import argparse
+from pymongo.mongo_client import MongoClient
+import os
+import time
+from datetime import datetime
 
 class critical_gh_context(Enum):
     ACTOR = "github.actor"
@@ -27,6 +31,39 @@ class critical_tp_workflow(Enum):
     WF_OOD = "Workflow out of date"
     NO_PINNING = "Workflow not pinned at commit"
 
+
+
+def get_action_intel(action):
+    TOKEN = os.getenv("ght", "NO_TOKEN")
+    with MongoClient() as client:
+        res = client['ghast']['cache'].find_one({"name" : action})
+        if res:
+            return res
+        else:
+            api_url = "https://api.github.com/repos/" + action + "/releases/latest"
+            req = requests.get(api_url, headers={"Authorization": f"token {TOKEN}"})
+            if req.status_code == 200:
+                res = json.loads(req.text)
+                res['name'] = action
+                client['ghast']['cache'].insert_one(res)
+                return res
+            else:
+                await_limit()
+                return get_action_intel(action)
+
+def await_limit():
+    limit, until = get_status()
+    if limit < 0:
+        time.sleep(until - int(datetime.utcnow().timestamp()) + 10)
+
+def get_status():
+    TOKEN = os.getenv("ght", "NO_TOKEN")
+    api_url = "https://api.github.com/rate_limit"
+    req = requests.get(api_url, headers={"Authorization": f"token {TOKEN}"})
+    try:
+        return req.json().get('resources', {}).get("core", {}).get("remaining", 0), req.json().get('resources', {}).get("core", {}).get("reset", 60 * 60)
+    except:
+        return 0, 60 * 60
 
 def getOODWf(wf):
     trueCount = 0
